@@ -2,7 +2,7 @@
 Smart Grid Load Forecasting Dashboard
 Run with: streamlit run app.py
 Place this file inside the same folder as: nldc_combined.csv, features.csv,
-model_comparison.csv, predictions.csv
+model_comparison_with_lstm.csv, predictions.csv
 """
 import streamlit as st
 import pandas as pd
