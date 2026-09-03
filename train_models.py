@@ -6,20 +6,12 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-df = pd.read_csv('features_with_weather.csv', index_col=0, parse_dates=True)
+df = pd.read_csv('features.csv', index_col=0, parse_dates=True)
 target = 'DEMAND_MET_MW'
 
-feature_cols = [
-    # load-based features (same as before)
-    'lag_1', 'lag_4', 'lag_96', 'lag_192',
-    'roll_mean_4', 'roll_std_4', 'roll_mean_96',
-    'hour_sin', 'hour_cos', 'dow_sin', 'dow_cos',
-    'is_weekend', 'is_holiday',
-    # weather features (new)
-    'weighted_temperature_2m', 'weighted_relative_humidity_2m',
-    'weighted_apparent_temperature', 'weighted_precipitation',
-    'weighted_wind_speed_10m', 'weighted_CDD',
-]
+feature_cols = ['lag_1','lag_4','lag_96','lag_192','roll_mean_4','roll_std_4',
+                 'roll_mean_96','hour_sin','hour_cos','dow_sin','dow_cos',
+                 'is_weekend','is_holiday']
 
 X = df[feature_cols]
 y = df[target]
@@ -41,7 +33,8 @@ results = {}
 preds = {}
 
 # 1. Naive baseline: predict = same time yesterday (lag_96)
-preds['Naive (t-96)'] = X_test['lag_96'].values
+naive_pred = X_test['lag_96']
+preds['Naive (t-96)'] = naive_pred.values
 
 # 2. Linear Regression
 lr = LinearRegression().fit(X_train, y_train)
@@ -52,13 +45,13 @@ rf = RandomForestRegressor(n_estimators=200, max_depth=12, random_state=42, n_jo
 rf.fit(X_train, y_train)
 preds['Random Forest'] = rf.predict(X_test)
 
-# 4. Gradient Boosting
+# 4. Gradient Boosting (XGBoost-equivalent, no external lib needed)
 gb = GradientBoostingRegressor(n_estimators=300, max_depth=4, learning_rate=0.05, random_state=42)
 gb.fit(X_train, y_train)
 preds['Gradient Boosting'] = gb.predict(X_test)
 
-# 5. MLP (shallow neural net)
-mlp = MLPRegressor(hidden_layer_sizes=(64, 32), max_iter=2000, random_state=42, early_stopping=True)
+# 5. MLP (shallow neural net, stand-in for DL until Keras/LSTM run in Colab)
+mlp = MLPRegressor(hidden_layer_sizes=(64,32), max_iter=2000, random_state=42, early_stopping=True)
 mlp.fit(X_train_scaled, y_train)
 preds['MLP (Neural Net)'] = mlp.predict(X_test_scaled)
 
@@ -71,30 +64,19 @@ for name, p in preds.items():
     r2 = r2_score(y_test, p)
     rows.append([name, mae, rmse, mape, r2])
 
-results_df = pd.DataFrame(rows, columns=['Model', 'MAE', 'RMSE', 'MAPE(%)', 'R2'])
+results_df = pd.DataFrame(rows, columns=['Model','MAE','RMSE','MAPE(%)','R2'])
 results_df = results_df.sort_values('RMSE')
 print()
 print(results_df.to_string(index=False))
 results_df.to_csv('model_comparison.csv', index=False)
 
-# Save predictions for plotting / dashboard
+# Save predictions for plotting
 pred_df = pd.DataFrame(preds, index=y_test.index)
 pred_df['Actual'] = y_test.values
 pred_df.to_csv('predictions.csv')
 
-# Feature importance from Random Forest
+# feature importance from RF
 fi = pd.Series(rf.feature_importances_, index=feature_cols).sort_values(ascending=False)
 print()
-print("Random Forest feature importances (with weather):")
+print("Random Forest feature importances:")
 print(fi)
-
-# Highlight where weather features rank, since lag_1 usually dominates
-weather_cols = ['weighted_temperature_2m', 'weighted_relative_humidity_2m',
-                 'weighted_apparent_temperature', 'weighted_precipitation',
-                 'weighted_wind_speed_10m', 'weighted_CDD']
-print()
-print("Weather feature ranks (out of", len(feature_cols), "total features):")
-ranked = fi.reset_index()
-ranked.columns = ['feature', 'importance']
-ranked['rank'] = ranked.index + 1
-print(ranked[ranked['feature'].isin(weather_cols)])
