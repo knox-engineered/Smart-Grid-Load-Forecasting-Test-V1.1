@@ -43,7 +43,7 @@ page = st.sidebar.radio(
 st.sidebar.markdown("---")
 st.sidebar.caption(f"Dataset: {raw.index.min().date()} to {raw.index.max().date()}")
 st.sidebar.caption(f"{len(raw):,} records @ 15-min resolution")
-st.sidebar.caption(f"Model Trained by Rowsan Maruf")
+st.sidebar.caption(f"Model Trained by Rowsan ")
 # ---------------------------------------------------------
 # PAGE 1: Overview
 # ---------------------------------------------------------
