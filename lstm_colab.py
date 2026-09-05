@@ -8,9 +8,9 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout
-from tensorflow.keras.callbacks import EarlyStopping
+import tensorflow.keras.models
+import tensorflow.keras.layers
+import tensorflow.keras.callbacks
 
 # ---- 1. Load features ----
 df = pd.read_csv('features.csv', index_col=0, parse_dates=True)
@@ -42,18 +42,18 @@ y_train, y_test = y_seq[:-test_size], y_seq[-test_size:]
 print("Train shape:", X_train.shape, "Test shape:", X_test.shape)
 
 # ---- 5. Build LSTM model ----
-model = Sequential([
-    LSTM(64, return_sequences=True, input_shape=(window, X_train.shape[2])),
-    Dropout(0.2),
-    LSTM(32),
-    Dropout(0.2),
-    Dense(16, activation='relu'),
-    Dense(1)
+model = tensorflow.keras.models.Sequential([
+    tensorflow.keras.layers.LSTM(64, return_sequences=True, input_shape=(window, X_train.shape[2])),
+    tensorflow.keras.layers.Dropout(0.2),
+    tensorflow.keras.layers.LSTM(32),
+    tensorflow.keras.layers.Dropout(0.2),
+    tensorflow.keras.layers.Dense(16, activation='relu'),
+    tensorflow.keras.layers.Dense(1)
 ])
 model.compile(optimizer='adam', loss='mse')
 model.summary()
 
-es = EarlyStopping(monitor='val_loss', patience=8, restore_best_weights=True)
+es = tensorflow.keras.callbacks.EarlyStopping(monitor='val_loss', patience=8, restore_best_weights=True)
 history = model.fit(
     X_train, y_train,
     validation_split=0.1,
