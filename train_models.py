@@ -72,7 +72,7 @@ results_df.to_csv('model_comparison.csv', index=False)
 
 # Save predictions for plotting
 pred_df = pd.DataFrame(preds, index=y_test.index)
-pred_df['Actual'] = y_test.values
+pred_df['Actual'] = y_test.values 
 pred_df.to_csv('predictions.csv')
 
 # feature importance from RF
